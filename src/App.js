@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, BookOpen, Edit3, Trash2, X, Star, Grid, List, Heart, TrendingUp } from 'lucide-react';
+import { Search, Plus, BookOpen, Edit3, Trash2, X, Star, Grid, List, Heart, TrendingUp, Minus, ZoomIn, Copy } from 'lucide-react';
 import { db } from './firebase';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 
@@ -13,6 +13,12 @@ const RepeatBible = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [viewMode, setViewMode] = useState('grid');
   const [loading, setLoading] = useState(false);
+  
+  // 글자 크기 상태 (localStorage에서 불러오기)
+  const [fontSize, setFontSize] = useState(() => {
+    const savedFontSize = localStorage.getItem('repeable-font-size');
+    return savedFontSize ? parseInt(savedFontSize) : 18;
+  });
   
   const [newQuote, setNewQuote] = useState({
     text: '',
@@ -28,6 +34,33 @@ const RepeatBible = () => {
   });
 
   const categories = ['성공', '동기부여', '인간관계', '성장', '지혜', '기타'];
+
+  // 글자 크기 변경 시 localStorage에 저장
+  useEffect(() => {
+    localStorage.setItem('repeable-font-size', fontSize.toString());
+  }, [fontSize]);
+
+  // 글자 크기 조절 함수
+  const increaseFontSize = () => {
+    if (fontSize < 32) {
+      setFontSize(prev => prev + 2);
+    }
+  };
+
+  const decreaseFontSize = () => {
+    if (fontSize > 12) {
+      setFontSize(prev => prev - 2);
+    }
+  };
+
+  // 복사하기 함수
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('복사되었습니다!');
+    }).catch(() => {
+      alert('복사에 실패했습니다.');
+    });
+  };
 
   // Firebase에서 데이터 실시간 로드
   useEffect(() => {
@@ -261,20 +294,43 @@ const RepeatBible = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">리피이블</h1>
-                <p className="text-gray-600 text-sm">PC로 작성, 모바일로 확인</p>
               </div>
             </div>
-            <button
-              onClick={() => setShowAddForm(true)}
-              disabled={loading}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-md"
-            >
-              <Plus size={18} />
-              <span>
-                {activeTab === 'bible' ? '문구 추가' : 
-                 activeTab === 'gratitude' ? '감사 기록' : '성장 기록'}
-              </span>
-            </button>
+            
+            <div className="flex items-center space-x-3">
+              {/* 글자 크기 조절 버튼 */}
+              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2">
+                <button
+                  onClick={decreaseFontSize}
+                  disabled={fontSize <= 12}
+                  className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
+                  title="글자 크기 줄이기"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="text-sm text-gray-600 min-w-[2rem] text-center">{fontSize}px</span>
+                <button
+                  onClick={increaseFontSize}
+                  disabled={fontSize >= 32}
+                  className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
+                  title="글자 크기 키우기"
+                >
+                  <ZoomIn size={16} />
+                </button>
+              </div>
+              
+              <button
+                onClick={() => setShowAddForm(true)}
+                disabled={loading}
+                className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-md"
+              >
+                <Plus size={18} />
+                <span>
+                  {activeTab === 'bible' ? '문구 추가' : 
+                   activeTab === 'gratitude' ? '감사 기록' : '성장 기록'}
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="flex space-x-1 bg-gray-100 rounded-xl p-1 mb-6">
@@ -516,8 +572,8 @@ const RepeatBible = () => {
 
         {filteredEntries.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-600 text-xl mb-2">내용이 없습니다</p>
-            <p className="text-gray-500">새로운 항목을 추가해보세요!</p>
+            <p className="text-white text-xl mb-2">내용이 없습니다</p>
+            <p className="text-gray-300">새로운 항목을 추가해보세요!</p>
           </div>
         ) : activeTab === 'bible' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -531,6 +587,13 @@ const RepeatBible = () => {
                     {quote.important && <Star className="text-yellow-500 fill-current" size={16} />}
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 flex space-x-1">
+                    <button
+                      onClick={() => copyToClipboard(quote.text)}
+                      className="p-2 text-gray-400 hover:text-green-500 rounded-lg transition-colors"
+                      title="복사하기"
+                    >
+                      <Copy size={16} />
+                    </button>
                     <button
                       onClick={() => toggleImportant(quote.id)}
                       disabled={loading}
@@ -555,7 +618,7 @@ const RepeatBible = () => {
                   </div>
                 </div>
 
-                <div className="text-gray-800 text-lg font-medium mb-3">
+                <div className="text-gray-800 font-medium mb-3" style={{ fontSize: `${fontSize}px`, color: 'white', backgroundColor: '#2d574b', padding: '16px', borderRadius: '8px', lineHeight: '1.6' }}>
                   "{quote.text}"
                 </div>
                 {quote.book && (
@@ -589,6 +652,13 @@ const RepeatBible = () => {
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 flex space-x-1">
                     <button
+                      onClick={() => copyToClipboard(entry.content)}
+                      className="p-2 text-gray-400 hover:text-green-500 rounded-lg transition-colors"
+                      title="복사하기"
+                    >
+                      <Copy size={16} />
+                    </button>
+                    <button
                       onClick={() => handleEditDiary(entry.id)}
                       disabled={loading}
                       className="p-2 text-gray-400 hover:text-blue-500 rounded-lg disabled:opacity-50"
@@ -605,7 +675,7 @@ const RepeatBible = () => {
                   </div>
                 </div>
 
-                <div className="text-gray-800 text-lg whitespace-pre-line">
+                <div className="whitespace-pre-line" style={{ fontSize: `${fontSize}px`, color: 'white', backgroundColor: '#2d574b', padding: '16px', borderRadius: '8px', lineHeight: '1.6' }}>
                   {entry.content}
                 </div>
               </div>
