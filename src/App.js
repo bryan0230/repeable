@@ -622,7 +622,18 @@ const RepeatBible = () => {
                   </div>
                 </div>
 
-                <div className="text-gray-800 font-medium mb-3" style={{ fontSize: `${fontSize}px`, color: 'white', backgroundColor: '#2d574b', padding: '16px', borderRadius: '8px', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                <div 
+                  className="text-gray-800 font-medium mb-3" 
+                  style={{ 
+                    fontSize: `${fontSize}px`, 
+                    color: 'white', 
+                    backgroundColor: '#2d574b', 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap'
+                  }}
+                >
                   "{quote.text}"
                 </div>
                 {quote.book && (
@@ -679,7 +690,17 @@ const RepeatBible = () => {
                   </div>
                 </div>
 
-                <div className="whitespace-pre-line" style={{ fontSize: `${fontSize}px`, color: 'white', backgroundColor: '#2d574b', padding: '16px', borderRadius: '8px', lineHeight: '1.6' }}>
+                <div 
+                  className="whitespace-pre-wrap" 
+                  style={{ 
+                    fontSize: `${fontSize}px`, 
+                    color: 'white', 
+                    backgroundColor: '#2d574b', 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    lineHeight: '1.6'
+                  }}
+                >
                   {entry.content}
                 </div>
               </div>
