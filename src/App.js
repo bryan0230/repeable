@@ -442,9 +442,8 @@ const RepeatBible = () => {
                   <textarea
                     value={newQuote.text}
                     onChange={(e) => setNewQuote({...newQuote, text: e.target.value})}
-                    placeholder="문구를 입력하세요... (엔터로 문단을 나눌 수 있습니다)"
+                    placeholder="문구를 입력하세요..."
                     className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 h-32"
-                    style={{ whiteSpace: 'pre-wrap' }}
                   />
                 </div>
 
@@ -535,11 +534,8 @@ const RepeatBible = () => {
                   <textarea
                     value={newEntry.content}
                     onChange={(e) => setNewEntry({...newEntry, content: e.target.value})}
-                    placeholder={newEntry.type === 'gratitude' ? 
-                      "오늘 감사했던 일들을 상세히 적어보세요... (엔터로 문단을 나눌 수 있습니다)" : 
-                      "오늘 성장한 점이나 배운 점을 구체적으로 적어보세요... (엔터로 문단을 나눌 수 있습니다)"}
+                    placeholder="내용을 입력하세요..."
                     className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 h-32"
-                    style={{ whiteSpace: 'pre-wrap' }}
                   />
                 </div>
 
@@ -622,18 +618,7 @@ const RepeatBible = () => {
                   </div>
                 </div>
 
-                <div 
-                  className="text-gray-800 font-medium mb-3" 
-                  style={{ 
-                    fontSize: `${fontSize}px`, 
-                    color: 'white', 
-                    backgroundColor: '#2d574b', 
-                    padding: '16px', 
-                    borderRadius: '8px', 
-                    lineHeight: '1.6',
-                    whiteSpace: 'pre-wrap'
-                  }}
-                >
+                <div className="text-gray-800 font-medium mb-3" style={{ fontSize: `${fontSize}px`, color: 'white', backgroundColor: '#2d574b', padding: '16px', borderRadius: '8px', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
                   "{quote.text}"
                 </div>
                 {quote.book && (
