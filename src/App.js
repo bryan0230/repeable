@@ -688,21 +688,25 @@ const RepeatBible = () => {
                     <span className="text-gray-500 text-sm">{entry.date}</span>
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 flex space-x-1">
-                    <button
-                      onClick={() => copyToClipboard(entry.content)}
-                      className="p-2 text-gray-400 hover:text-green-500 rounded-lg transition-colors"
-                      title="복사하기"
-                    >
-                      <Copy size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleEditDiary(entry.id)}
-                      disabled={loading}
-                      className="p-2 text-gray-400 hover:text-blue-500 rounded-lg disabled:opacity-50"
-                    >
-                      <Edit3 size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteDiary(entry.id)}
-                      disabled={loading}
-                      className="p-2 text-gray-400
+  <button
+    onClick={() => copyToClipboard(entry.content)}
+    className="p-2 text-gray-400 hover:text-green-500 rounded-lg transition-colors"
+    title="복사하기"
+  >
+    <Copy size={16} />
+  </button>
+  <button
+    onClick={() => handleEditDiary(entry.id)}
+    disabled={loading}
+    className="p-2 text-gray-400 hover:text-blue-500 rounded-lg disabled:opacity-50"
+  >
+    <Edit3 size={16} />
+  </button>
+  <button
+    onClick={() => handleDeleteDiary(entry.id)}
+    disabled={loading}
+    className="p-2 text-gray-400 hover:text-red-500 rounded-lg disabled:opacity-50"
+  >
+    <Trash2 size={16} />
+  </button>
+</div>
