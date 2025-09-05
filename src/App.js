@@ -293,10 +293,19 @@ const RepeatBible = () => {
                          activeTab === 'growth' ? entry.type === 'growth' : true;
       return matchesSearch && matchesType;
     }).sort((a, b) => {
-      // 일기는 최신순 정렬 (createdAt 또는 date 기준)
-      const dateA = new Date(a.createdAt || a.date);
-      const dateB = new Date(b.createdAt || b.date);
-      return dateB - dateA;
+      // 일기는 최신순 정렬 (여러 기준으로 시도)
+      let dateA, dateB;
+      
+      // createdAt이 있으면 사용, 없으면 date 사용
+      if (a.createdAt && b.createdAt) {
+        dateA = a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
+        dateB = b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
+      } else {
+        dateA = new Date(a.date || a.createdAt);
+        dateB = new Date(b.date || b.createdAt);
+      }
+      
+      return dateB - dateA; // 최신순 (큰 날짜가 위로)
     });
 
   return (
