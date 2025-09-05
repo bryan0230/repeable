@@ -320,7 +320,6 @@ const RepeatBible = () => {
             </div>
             
             <div className="flex items-center space-x-3">
-              {/* 글자 크기 조절 버튼 */}
               <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2">
                 <button
                   onClick={decreaseFontSize}
@@ -688,25 +687,50 @@ const RepeatBible = () => {
                     <span className="text-gray-500 text-sm">{entry.date}</span>
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 flex space-x-1">
-  <button
-    onClick={() => copyToClipboard(entry.content)}
-    className="p-2 text-gray-400 hover:text-green-500 rounded-lg transition-colors"
-    title="복사하기"
-  >
-    <Copy size={16} />
-  </button>
-  <button
-    onClick={() => handleEditDiary(entry.id)}
-    disabled={loading}
-    className="p-2 text-gray-400 hover:text-blue-500 rounded-lg disabled:opacity-50"
-  >
-    <Edit3 size={16} />
-  </button>
-  <button
-    onClick={() => handleDeleteDiary(entry.id)}
-    disabled={loading}
-    className="p-2 text-gray-400 hover:text-red-500 rounded-lg disabled:opacity-50"
-  >
-    <Trash2 size={16} />
-  </button>
-</div>
+                    <button
+                      onClick={() => copyToClipboard(entry.content)}
+                      className="p-2 text-gray-400 hover:text-green-500 rounded-lg transition-colors"
+                      title="복사하기"
+                    >
+                      <Copy size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleEditDiary(entry.id)}
+                      disabled={loading}
+                      className="p-2 text-gray-400 hover:text-blue-500 rounded-lg disabled:opacity-50"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDiary(entry.id)}
+                      disabled={loading}
+                      className="p-2 text-gray-400 hover:text-red-500 rounded-lg disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                <div 
+                  className="whitespace-pre-wrap" 
+                  style={{ 
+                    fontSize: `${fontSize}px`, 
+                    color: 'white', 
+                    backgroundColor: '#2d574b', 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    lineHeight: '1.6'
+                  }}
+                >
+                  {entry.content}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default RepeatBible;
