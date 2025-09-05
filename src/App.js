@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, BookOpen, Edit3, Trash2, X, Star, Grid, List, Heart, TrendingUp, Minus, ZoomIn, Copy } from 'lucide-react';
 import { db } from './firebase';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 
 const RepeatBible = () => {
   const [quotes, setQuotes] = useState([]);
@@ -60,6 +60,16 @@ const RepeatBible = () => {
     }).catch(() => {
       alert('복사에 실패했습니다.');
     });
+  };
+
+  // 배열 섞기 함수
+  const shuffleArray = (array) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   };
 
   // Firebase에서 데이터 실시간 로드
@@ -269,12 +279,24 @@ const RepeatBible = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const filteredEntries = activeTab === 'bible' ? filteredQuotes : 
+  // 바이블 정렬: 중요 문구 우선, 각 그룹 내에서 랜덤
+  const sortedQuotes = (() => {
+    const importantQuotes = shuffleArray(filteredQuotes.filter(quote => quote.important));
+    const normalQuotes = shuffleArray(filteredQuotes.filter(quote => !quote.important));
+    return [...importantQuotes, ...normalQuotes];
+  })();
+
+  const filteredEntries = activeTab === 'bible' ? sortedQuotes : 
     diaryEntries.filter(entry => {
       const matchesSearch = entry.content.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = activeTab === 'gratitude' ? entry.type === 'gratitude' : 
                          activeTab === 'growth' ? entry.type === 'growth' : true;
       return matchesSearch && matchesType;
+    }).sort((a, b) => {
+      // 일기는 최신순 정렬 (createdAt 또는 date 기준)
+      const dateA = new Date(a.createdAt || a.date);
+      const dateB = new Date(b.createdAt || b.date);
+      return dateB - dateA;
     });
 
   return (
@@ -442,8 +464,9 @@ const RepeatBible = () => {
                   <textarea
                     value={newQuote.text}
                     onChange={(e) => setNewQuote({...newQuote, text: e.target.value})}
-                    placeholder="문구를 입력하세요..."
+                    placeholder="문구를 입력하세요... (엔터로 문단을 나눌 수 있습니다)"
                     className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 h-32"
+                    style={{ whiteSpace: 'pre-wrap' }}
                   />
                 </div>
 
@@ -534,8 +557,11 @@ const RepeatBible = () => {
                   <textarea
                     value={newEntry.content}
                     onChange={(e) => setNewEntry({...newEntry, content: e.target.value})}
-                    placeholder="내용을 입력하세요..."
+                    placeholder={newEntry.type === 'gratitude' ? 
+                      "오늘 감사했던 일들을 상세히 적어보세요... (엔터로 문단을 나눌 수 있습니다)" : 
+                      "오늘 성장한 점이나 배운 점을 구체적으로 적어보세요... (엔터로 문단을 나눌 수 있습니다)"}
                     className="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 h-32"
+                    style={{ whiteSpace: 'pre-wrap' }}
                   />
                 </div>
 
@@ -572,12 +598,12 @@ const RepeatBible = () => {
 
         {filteredEntries.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-white text-xl mb-2">내용이 없습니다</p>
-            <p className="text-gray-300">새로운 항목을 추가해보세요!</p>
+            <p className="text-gray-600 text-xl mb-2">내용이 없습니다</p>
+            <p className="text-gray-500">새로운 항목을 추가해보세요!</p>
           </div>
         ) : activeTab === 'bible' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredQuotes.map((quote) => (
+            {filteredEntries.map((quote) => (
               <div key={quote.id} className="group bg-white rounded-2xl shadow-lg hover:shadow-xl p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center space-x-2">
@@ -618,7 +644,18 @@ const RepeatBible = () => {
                   </div>
                 </div>
 
-                <div className="text-gray-800 font-medium mb-3" style={{ fontSize: `${fontSize}px`, color: 'white', backgroundColor: '#2d574b', padding: '16px', borderRadius: '8px', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                <div 
+                  className="text-gray-800 font-medium mb-3" 
+                  style={{ 
+                    fontSize: `${fontSize}px`, 
+                    color: 'white', 
+                    backgroundColor: '#2d574b', 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap'
+                  }}
+                >
                   "{quote.text}"
                 </div>
                 {quote.book && (
@@ -668,33 +705,4 @@ const RepeatBible = () => {
                     <button
                       onClick={() => handleDeleteDiary(entry.id)}
                       disabled={loading}
-                      className="p-2 text-gray-400 hover:text-red-500 rounded-lg disabled:opacity-50"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                <div 
-                  className="whitespace-pre-wrap" 
-                  style={{ 
-                    fontSize: `${fontSize}px`, 
-                    color: 'white', 
-                    backgroundColor: '#2d574b', 
-                    padding: '16px', 
-                    borderRadius: '8px', 
-                    lineHeight: '1.6'
-                  }}
-                >
-                  {entry.content}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default RepeatBible;
+                      className="p-2 text-gray-400
