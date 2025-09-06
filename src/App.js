@@ -1,9 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, BookOpen, Edit3, Trash2, X, Star, Grid, List, Heart, TrendingUp, Minus, ZoomIn, Copy } from 'lucide-react';
+import { Search, Plus, BookOpen, Edit3, Trash2, X, Star, Grid, List, Heart, TrendingUp, Minus, ZoomIn, Copy, Lock } from 'lucide-react';
 import { db } from './firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 
 const RepeatBible = () => {
+  // 인증 상태 관리
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('repeable-auth') === 'true';
+  });
+  const [password, setPassword] = useState('');
+  const [showPasswordInput, setShowPasswordInput] = useState(false);
+
   const [quotes, setQuotes] = useState([]);
   const [diaryEntries, setDiaryEntries] = useState([]);
   const [activeTab, setActiveTab] = useState('bible');
@@ -34,6 +41,86 @@ const RepeatBible = () => {
   });
 
   const categories = ['성공', '동기부여', '인간관계', '성장', '지혜', '기타'];
+
+  // 비밀번호 확인 함수
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (password === '0230') {
+      setIsAuthenticated(true);
+      localStorage.setItem('repeable-auth', 'true');
+      setPassword('');
+      setShowPasswordInput(false);
+    } else {
+      alert('잘못된 비밀번호입니다.');
+      setPassword('');
+    }
+  };
+
+  // 로그아웃 함수
+  const handleLogout = () => {
+    if (window.confirm('로그아웃 하시겠습니까?')) {
+      localStorage.removeItem('repeable-auth');
+      setIsAuthenticated(false);
+      setPassword('');
+    }
+  };
+
+  // 인증되지 않은 경우 로그인 화면 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="bg-blue-500 p-4 rounded-xl inline-block mb-4">
+              <Lock className="text-white" size={32} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">리피이블</h1>
+            <p className="text-gray-600">비밀번호를 입력하세요</p>
+          </div>
+
+          {!showPasswordInput ? (
+            <button
+              onClick={() => setShowPasswordInput(true)}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium transition-colors"
+            >
+              로그인
+            </button>
+          ) : (
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="비밀번호 입력"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordInput(false);
+                    setPassword('');
+                  }}
+                  className="flex-1 py-3 px-4 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                >
+                  확인
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // 글자 크기 변경 시 localStorage에 저장
   useEffect(() => {
@@ -74,6 +161,8 @@ const RepeatBible = () => {
 
   // Firebase에서 데이터 실시간 로드
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const unsubscribeQuotes = onSnapshot(collection(db, 'quotes'), (snapshot) => {
       const quotesData = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -94,7 +183,7 @@ const RepeatBible = () => {
       unsubscribeQuotes();
       unsubscribeDiary();
     };
-  }, []);
+  }, [isAuthenticated]);
 
   const handleAddQuote = async () => {
     if (newQuote.text.trim()) {
@@ -293,10 +382,9 @@ const RepeatBible = () => {
                          activeTab === 'growth' ? entry.type === 'growth' : true;
       return matchesSearch && matchesType;
     }).sort((a, b) => {
-      // 일기는 최신순 정렬 (여러 기준으로 시도)
+      // 일기는 최신순 정렬
       let dateA, dateB;
       
-      // createdAt이 있으면 사용, 없으면 date 사용
       if (a.createdAt && b.createdAt) {
         dateA = a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt);
         dateB = b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt);
@@ -305,7 +393,7 @@ const RepeatBible = () => {
         dateB = new Date(b.date || b.createdAt);
       }
       
-      return dateB - dateA; // 최신순 (큰 날짜가 위로)
+      return dateB - dateA;
     });
 
   return (
