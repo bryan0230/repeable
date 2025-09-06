@@ -396,6 +396,63 @@ const RepeatBible = () => {
       return dateB - dateA;
     });
 
+  // 인증되지 않은 경우 로그인 화면 표시
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="bg-blue-500 p-4 rounded-xl inline-block mb-4">
+              <Lock className="text-white" size={32} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">리피이블</h1>
+            <p className="text-gray-600">비밀번호를 입력하세요</p>
+          </div>
+
+          {!showPasswordInput ? (
+            <button
+              onClick={() => setShowPasswordInput(true)}
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium transition-colors"
+            >
+              로그인
+            </button>
+          ) : (
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="비밀번호 입력"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
+                />
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordInput(false);
+                    setPassword('');
+                  }}
+                  className="flex-1 py-3 px-4 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
+                >
+                  확인
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {loading && (
