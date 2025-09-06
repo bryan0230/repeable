@@ -360,6 +360,14 @@ const RepeatBible = () => {
                    activeTab === 'gratitude' ? '감사 기록' : '성장 기록'}
                 </span>
               </button>
+              
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                title="로그아웃"
+              >
+                로그아웃
+              </button>
             </div>
           </div>
 
