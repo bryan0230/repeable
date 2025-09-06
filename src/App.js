@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, BookOpen, Edit3, Trash2, X, Star, Grid, List, Heart, TrendingUp, Minus, ZoomIn, Copy, Lock } from 'lucide-react';
+import { Search, Plus, Edit3, Trash2, X, Star, Grid, List, Heart, TrendingUp, Minus, ZoomIn, Copy, Lock } from 'lucide-react';
 import { db } from './firebase';
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
 
@@ -42,10 +42,41 @@ const RepeatBible = () => {
 
   const categories = ['성공', '동기부여', '인간관계', '성장', '지혜', '기타'];
 
-  // 비밀번호 확인 함수
+  // 글자 크기 변경 시 localStorage에 저장
+  useEffect(() => {
+    localStorage.setItem('repeable-font-size', fontSize.toString());
+  }, [fontSize]);
+
+  // Firebase에서 데이터 실시간 로드
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const unsubscribeQuotes = onSnapshot(collection(db, 'quotes'), (snapshot) => {
+      const quotesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setQuotes(quotesData);
+    });
+
+    const unsubscribeDiary = onSnapshot(collection(db, 'diaryEntries'), (snapshot) => {
+      const diaryData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setDiaryEntries(diaryData);
+    });
+
+    return () => {
+      unsubscribeQuotes();
+      unsubscribeDiary();
+    };
+  }, [isAuthenticated]);
+
+  // 비밀번호 확인 함수 - 개선된 버전
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
-    if (password === '0230') {
+    if (password.trim() === '0230') {
       setIsAuthenticated(true);
       localStorage.setItem('repeable-auth', 'true');
       setPassword('');
@@ -56,6 +87,16 @@ const RepeatBible = () => {
     }
   };
 
+  // 로그인 버튼 클릭 핸들러 - 새로 추가
+  const handleLoginClick = () => {
+    if (!showPasswordInput) {
+      setShowPasswordInput(true);
+      return;
+    }
+    // 비밀번호 입력 상태에서 로그인 버튼 클릭 시 즉시 확인
+    handlePasswordSubmit({ preventDefault: () => {} });
+  };
+
   // 로그아웃 함수
   const handleLogout = () => {
     if (window.confirm('로그아웃 하시겠습니까?')) {
@@ -64,68 +105,6 @@ const RepeatBible = () => {
       setPassword('');
     }
   };
-
-  // 인증되지 않은 경우 로그인 화면 표시
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="bg-blue-500 p-4 rounded-xl inline-block mb-4">
-              <Lock className="text-white" size={32} />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">리피이블</h1>
-            <p className="text-gray-600">비밀번호를 입력하세요</p>
-          </div>
-
-          {!showPasswordInput ? (
-            <button
-              onClick={() => setShowPasswordInput(true)}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium transition-colors"
-            >
-              로그인
-            </button>
-          ) : (
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호 입력"
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  autoFocus
-                />
-              </div>
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPasswordInput(false);
-                    setPassword('');
-                  }}
-                  className="flex-1 py-3 px-4 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
-                >
-                  확인
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // 글자 크기 변경 시 localStorage에 저장
-  useEffect(() => {
-    localStorage.setItem('repeable-font-size', fontSize.toString());
-  }, [fontSize]);
 
   // 글자 크기 조절 함수
   const increaseFontSize = () => {
@@ -158,32 +137,6 @@ const RepeatBible = () => {
     }
     return shuffled;
   };
-
-  // Firebase에서 데이터 실시간 로드
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const unsubscribeQuotes = onSnapshot(collection(db, 'quotes'), (snapshot) => {
-      const quotesData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setQuotes(quotesData);
-    });
-
-    const unsubscribeDiary = onSnapshot(collection(db, 'diaryEntries'), (snapshot) => {
-      const diaryData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setDiaryEntries(diaryData);
-    });
-
-    return () => {
-      unsubscribeQuotes();
-      unsubscribeDiary();
-    };
-  }, [isAuthenticated]);
 
   const handleAddQuote = async () => {
     if (newQuote.text.trim()) {
@@ -411,23 +364,23 @@ const RepeatBible = () => {
 
           {!showPasswordInput ? (
             <button
-              onClick={() => setShowPasswordInput(true)}
+              onClick={handleLoginClick}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-xl font-medium transition-colors"
             >
               로그인
             </button>
           ) : (
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
+            <div className="space-y-4">
+              <form onSubmit={handlePasswordSubmit}>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="비밀번호 입력"
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
                   autoFocus
                 />
-              </div>
+              </form>
               <div className="flex space-x-3">
                 <button
                   type="button"
@@ -440,13 +393,14 @@ const RepeatBible = () => {
                   취소
                 </button>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleLoginClick}
                   className="flex-1 py-3 px-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
                 >
                   확인
                 </button>
               </div>
-            </form>
+            </div>
           )}
         </div>
       </div>
@@ -462,56 +416,49 @@ const RepeatBible = () => {
       )}
       
       <div className="bg-white shadow-lg border-b-2 border-blue-500">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-500 p-3 rounded-xl">
-                <BookOpen className="text-white" size={28} />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">리피이블</h1>
-              </div>
-            </div>
+        <div className="max-w-6xl mx-auto px-4 py-4">
+          {/* 첫 번째 줄: 문구추가 + 로그아웃 */}
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setShowAddForm(true)}
+              disabled={loading}
+              className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-md text-sm"
+            >
+              <Plus size={16} />
+              <span>
+                {activeTab === 'bible' ? '문구 추가' : 
+                 activeTab === 'gratitude' ? '감사 기록' : '성장 기록'}
+              </span>
+            </button>
             
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2">
-                <button
-                  onClick={decreaseFontSize}
-                  disabled={fontSize <= 12}
-                  className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
-                  title="글자 크기 줄이기"
-                >
-                  <Minus size={16} />
-                </button>
-                <span className="text-sm text-gray-600 min-w-[2rem] text-center">{fontSize}px</span>
-                <button
-                  onClick={increaseFontSize}
-                  disabled={fontSize >= 32}
-                  className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
-                  title="글자 크기 키우기"
-                >
-                  <ZoomIn size={16} />
-                </button>
-              </div>
-              
+            <button
+              onClick={handleLogout}
+              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+              title="로그아웃"
+            >
+              로그아웃
+            </button>
+          </div>
+
+          {/* 두 번째 줄: 글자 크기 조절 */}
+          <div className="flex justify-center mb-4">
+            <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-2">
               <button
-                onClick={() => setShowAddForm(true)}
-                disabled={loading}
-                className="bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors shadow-md"
+                onClick={decreaseFontSize}
+                disabled={fontSize <= 12}
+                className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
+                title="글자 크기 줄이기"
               >
-                <Plus size={18} />
-                <span>
-                  {activeTab === 'bible' ? '문구 추가' : 
-                   activeTab === 'gratitude' ? '감사 기록' : '성장 기록'}
-                </span>
+                <Minus size={16} />
               </button>
-              
+              <span className="text-sm text-gray-600 min-w-[2rem] text-center">{fontSize}px</span>
               <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
-                title="로그아웃"
+                onClick={increaseFontSize}
+                disabled={fontSize >= 32}
+                className="p-2 text-gray-600 hover:text-gray-800 disabled:text-gray-400 transition-colors"
+                title="글자 크기 키우기"
               >
-                로그아웃
+                <ZoomIn size={16} />
               </button>
             </div>
           </div>
@@ -525,7 +472,6 @@ const RepeatBible = () => {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              <BookOpen size={18} />
               <span>바이블</span>
             </button>
             <button
