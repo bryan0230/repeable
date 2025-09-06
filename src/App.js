@@ -516,7 +516,7 @@ const RepeatBible = () => {
             </div>
           </div>
 
-          <div className="flex space-x-1 bg-gray-100 rounded-xl p-1 mb-6">
+          <div className="flex space-x-1 bg-gray-100 rounded-xl p-1 mb-4">
             <button
               onClick={() => setActiveTab('bible')}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2 ${
